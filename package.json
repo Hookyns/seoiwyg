@@ -1,0 +1,33 @@
+{
+	"name": "seoiwyg",
+	"version": "1.0.0",
+	"description": "SEO friendly wysiwyg editor",
+	"main": "dist/seoiwyg.js",
+	"files": [
+		"dist/**/*.js",
+		"dist/**/*.d.ts",
+		"dist/**/*.css"
+	],
+	"scripts": {
+		"postinstall": "node dist-outliner.js",
+		"test": "echo \"Error: no test specified\" && exit 1",
+		"watchless": "watch-less-compiler ./dist",
+		"build": "node_modules\\.bin\\babel src/ --out-file dist/seoiwyg.js --extensions .ts,.tsx & npm run build-types",
+		"build-types": "tsc --emitDeclarationOnly"
+	},
+	"keywords": [
+		"wysiwyg",
+		"editor",
+		"seo",
+		"fiendly"
+	],
+	"author": "Roman Jámbor",
+	"license": "MIT",
+	"devDependencies": {
+		"typescript": "^3.3.3",
+		"watch-less-compiler": "^1.4.0"
+	},
+	"dependencies": {
+		"document-outliner": "^1.0.4"
+	}
+}

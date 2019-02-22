@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<title>Example</title>
+
+	<script src="../dist/document-outliner.js"></script>
+	<script src="../dist/seoiwyg.js"></script>
+	<link href="../dist/seoiwyg.css" rel="stylesheet" type="text/css">
+
+	<style>
+		h1, h2, h3, h4, h5, h6 {
+			font: normal 2.4em sans-serif;
+			margin: 0.5em 0 0.25em 0;
+		}
+
+		h2 {
+			font-size: 2.1em;
+		}
+
+		h3 {
+			font-size: 1.8em;
+		}
+
+		h4 {
+			font-size: 1.5em;
+		}
+
+		h5 {
+			font-size: 1.3em;
+		}
+
+		h6 {
+			font-size: 1.1em;
+		}
+
+		p {
+			margin: 0;
+		}
+
+		p:not(:first-of-type) {
+			text-indent: 3em;
+			margin-top: 0.25em;
+		}
+	</style>
+</head>
+<body>
+<article id="editor">
+	<section>
+		<h1>Main title</h1>
+		<p>
+			Lorem ipsum dolor sit amet, consectetur adipiscing elit. Mauris vitae quam tristique, sollicitudin quam ac,
+			accumsan risus. Class aptent taciti sociosqu ad litora torquent per conubia nostra, per inceptos himenaeos.
+			Ut a leo eros. Vivamus ut lorem eget orci rutrum lacinia. Pellentesque venenatis est eget augue
+			pellentesque, varius molestie dolor maximus. Suspendisse orci urna, ornare ut augue in, imperdiet vehicula
+			orci. Curabitur malesuada nisl nec placerat laoreet. Maecenas aliquam eros quis massa vestibulum cursus.
+			Nunc interdum suscipit mattis. Interdum et malesuada fames ac ante ipsum primis in faucibus.
+		</p>
+
+		<section>
+			<h2>Sub-title</h2>
+			<p>
+				Pellentesque at vehicula neque. Aenean sodales quam et dolor scelerisque egestas. In eu augue augue.
+				Morbi posuere hendrerit orci sit amet cursus. Maecenas non suscipit erat. Curabitur tellus est,
+				condimentum id vestibulum suscipit, pulvinar nec mi. Sed id sapien pharetra erat sagittis blandit vel
+				vel dui. Nulla ut nisi neque. Mauris vulputate eros vel lorem malesuada commodo. Integer euismod
+				eleifend augue vel accumsan. Etiam ut elit pulvinar, vestibulum diam vitae, convallis dolor.
+			</p>
+			<p>
+				Lorem ipsum dolor sit amet, consectetur adipiscing elit. Mauris vitae quam tristique, sollicitudin quam ac,
+				accumsan risus. Class aptent taciti sociosqu ad litora torquent per conubia nostra, per inceptos himenaeos.
+				Ut a leo eros. Vivamus ut lorem eget orci rutrum lacinia. Pellentesque venenatis est eget augue
+				pellentesque, varius molestie dolor maximus. Suspendisse orci urna, ornare ut augue in, imperdiet vehicula
+				orci. Curabitur malesuada nisl nec placerat laoreet. Maecenas aliquam eros quis massa vestibulum cursus.
+				Nunc interdum suscipit mattis. Interdum et malesuada fames ac ante ipsum primis in faucibus.
+			</p>
+		</section>
+	</section>
+</article>
+
+<script>
+	let editor = new SeoIwyg("#editor");
+</script>
+</body>
+</html>

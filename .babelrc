@@ -1,0 +1,23 @@
+{
+	"presets": [
+		[
+			"@babel/env",
+			{
+				"loose": true
+			}
+		],
+		"@babel/preset-typescript",
+		["minify"]
+	],
+	"plugins": [
+		"@babel/plugin-syntax-jsx",
+		[
+			"@babel/plugin-transform-react-jsx",
+			{
+				"pragma": "DOMcreateElement"
+			}
+		],
+		"@babel/plugin-proposal-class-properties"
+	],
+	"comments": false
+}

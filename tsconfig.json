@@ -1,0 +1,21 @@
+{
+	"compilerOptions": {
+		"module": "none",
+		"target": "es5",
+		"sourceMap": true,
+		"outFile": "dist/seoiwyg.js",
+		"strict": true,
+		"noImplicitAny": false,
+		"jsx": "react",
+		"jsxFactory": "createElement",
+		"removeComments": true,
+		"declaration": true,
+		"noEmitOnError": false
+	},
+	"include": [
+		"./src/**/*.ts",
+		"./src/**/*.d.ts",
+		"./src/**/*.tsx",
+		"./node_modules/document-outliner/lib/*.d.ts"
+	]
+}

@@ -1,0 +1,45 @@
+@border-color: rgba(0, 0, 0, 0.1);
+
+.seoiwyg-editor {
+	border: 1px solid @border-color;
+	overflow: hidden;
+
+	.seoiwyg-tools {
+		border-bottom: 1px solid @border-color;
+		padding: 5px;
+		user-select: none;
+
+		span {
+			display: inline-block;
+			padding: 2px 5px;
+			margin-right: 5px;
+			cursor: pointer;
+			border: 1px solid @border-color;
+			background: #eee;
+		}
+	}
+
+	.seoiwyg-content  {
+		float: left;
+		outline: 0;
+		padding: 5px;
+	}
+
+	.seoiwyg-outline {
+		float: right;
+		width: 20%;
+		display: none;
+	}
+
+	&.seoiwyg-outline-show {
+		.seoiwyg-content {
+			width: 80%;
+			border-right: 1px solid @border-color;
+			box-sizing: border-box;
+		}
+
+		.seoiwyg-outline {
+			display: block;
+		}
+	}
+}
