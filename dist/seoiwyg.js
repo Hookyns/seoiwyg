@@ -109,7 +109,7 @@ var SeoIwyg = (function () {
                 mainHeading: null,
                 section: section
             },
-            element: selection.focusNode ? selection.focusNode.parentElement : null,
+            element: focused,
             node: selection.focusNode
         };
     };
@@ -121,13 +121,13 @@ var SeoIwyg = (function () {
         }
         range.surroundContents(into);
         var newRange = document.createRange();
-        newRange.selectNode(into);
+        newRange.selectNodeContents(into);
         selection.removeAllRanges();
         selection.addRange(newRange);
         if (selectionType === SelectionType.Caret) {
             into.appendChild(document.createTextNode(SeoIwyg.PlaceholderChar));
-            range.setStart(into, 1);
-            range.collapse(true);
+            newRange.setStart(into, 1);
+            newRange.collapse(true);
         }
     };
     SeoIwyg.prototype.unwrapSelection = function (selection, nodeOrSelector) {
@@ -152,7 +152,6 @@ var SeoIwyg = (function () {
                 range.endContainer.parentElement.insertAdjacentText("afterend", SeoIwyg.PlaceholderChar);
                 sib = range.endContainer.parentElement.nextSibling;
                 newRange.setStart(sib, 1);
-                newRange.setEnd(sib, 1);
             }
             else {
                 newRange.setStart(sib, 0);
@@ -170,6 +169,9 @@ var SeoIwyg = (function () {
         }
     };
     SeoIwyg.prototype.getFocusedElement = function (selection) {
+        if (!selection.focusNode) {
+            return null;
+        }
         return selection.focusNode.nodeType === Node.TEXT_NODE ? selection.focusNode.parentElement : selection.focusNode;
     };
     SeoIwyg.prototype.getFocusedTextNode = function (selection, __node) {
@@ -184,7 +186,12 @@ var SeoIwyg = (function () {
     };
     SeoIwyg.prototype.init = function (selector) {
         var _this = this;
-        this.addCommand(new BoldCommand());
+        this.addCommand(new SimpleTagCommand("Bold", "", "strong", "b"));
+        this.addCommand(new SimpleTagCommand("Italic", "", "em", "i"));
+        this.addCommand(new SimpleTagCommand("Strike", "", "strike"));
+        this.addCommand(new SimpleTagCommand("Sub", "", "sub"));
+        this.addCommand(new SimpleTagCommand("Sup", "", "sup"));
+        this.addCommand(new HeadingCommand());
         this.addCommand(new OutlineCommand());
         document.addEventListener("DOMContentLoaded", function () {
             _this.findAndStoreContainer(selector);
@@ -262,9 +269,19 @@ var SeoIwyg = (function () {
 }());
 var Command = (function () {
     function Command(name, icon) {
+        this.entity = null;
+        this.active = false;
+        this._onClick = new EditorEvent();
         this._name = name;
         this._icon = icon;
     }
+    Object.defineProperty(Command.prototype, "onClick", {
+        get: function () {
+            return this._onClick;
+        },
+        enumerable: true,
+        configurable: true
+    });
     Object.defineProperty(Command.prototype, "name", {
         get: function () {
             return this._name;
@@ -280,13 +297,21 @@ var Command = (function () {
         configurable: true
     });
     Command.prototype.render = function () {
-        return (createElement("span", { class: "seoiwyg-command-button" }, this.name));
+        var _this = this;
+        return this.entity = (createElement("span", { class: "seoiwyg-command-button" + (this.active ? " active" : ""), onClick: function () {
+                var args = [];
+                for (var _i = 0; _i < arguments.length; _i++) {
+                    args[_i] = arguments[_i];
+                }
+                var _a;
+                return (_a = _this._onClick).invoke.apply(_a, args);
+            } }, this.name));
     };
     Command.prototype.onChange = function (editor, selection) {
         throw new Error("Not implemented. Do not call super.onChange();");
     };
     Command.prototype.onSelection = function (editor, selection) {
-        throw new Error("Not implemented. Do not call super.onSelection();");
+        this.active = this.isActive(editor, selection);
     };
     return Command;
 }());
@@ -309,15 +334,12 @@ var BoldCommand = (function (_super) {
         return _super.call(this, "Bold", "images/cmd/bold.png") || this;
     }
     BoldCommand.prototype.apply = function (editor, selection) {
-        console.log("APPLY");
         editor.wrapSelection(selection.selection, (createElement("strong", null)));
     };
     BoldCommand.prototype.redo = function (editor, selection) {
-        console.log("REDO");
         editor.unwrapSelection(selection.selection, "strong,b");
     };
     BoldCommand.prototype.isActive = function (editor, selection) {
-        console.log(selection);
         if (selection.element) {
             var strong = selection.element.closest("strong,b");
             if (strong != null) {
@@ -400,6 +422,7 @@ var Toolbar = (function () {
     function Toolbar(seoiwyg) {
         var _this = this;
         this.commands = [];
+        this.entity = null;
         this.seoIwyg = seoiwyg;
         this.seoIwyg.onChange(function () {
             var args = [];
@@ -429,13 +452,16 @@ var Toolbar = (function () {
     Toolbar.prototype.render = function () {
         var _this = this;
         var toolButtons = this.commands.map(function (cmd) {
-            var el = cmd.render();
-            el.addEventListener("click", function () {
+            cmd.onClick.add(function (e) {
+                var orig = cmd.entity;
                 _this.seoIwyg.invokeCommand(cmd);
+                if (orig) {
+                    _this.reRenderCommand(cmd, orig);
+                }
             });
-            return el;
+            return cmd.render();
         });
-        return (createElement("div", { class: "seoiwyg-tools" }, toolButtons));
+        return this.entity = (createElement("div", { class: "seoiwyg-tools" }, toolButtons));
     };
     Toolbar.prototype.onEditorChange = function (editor, selection) {
         for (var _i = 0, _a = this.commands; _i < _a.length; _i++) {
@@ -448,10 +474,15 @@ var Toolbar = (function () {
     Toolbar.prototype.onEditorSelection = function (editor, selection) {
         for (var _i = 0, _a = this.commands; _i < _a.length; _i++) {
             var cmd = _a[_i];
-            if (cmd.constructor.prototype.hasOwnProperty("onSelection")) {
-                cmd.onSelection(editor, selection);
+            var orig = cmd.entity;
+            cmd.onSelection(editor, selection);
+            if (orig) {
+                this.reRenderCommand(cmd, orig);
             }
         }
+    };
+    Toolbar.prototype.reRenderCommand = function (cmd, orig) {
+        this.entity.replaceChild(cmd.render(), orig);
     };
     return Toolbar;
 }());
@@ -461,23 +492,55 @@ var HeadingCommand = (function (_super) {
         return _super.call(this, "Heading", "images/cmd/heading.png") || this;
     }
     HeadingCommand.prototype.apply = function (editor, selection) {
-        selection.context.heading.tagName;
-        editor.wrapSelection(selection.selection, (createElement("strong", null)));
+        var Heading = "h" + ((this.getSectionHeadingRank(selection) || 0) + 1).toString();
+        editor.wrapSelection(selection.selection, (createElement("section", null,
+            createElement(Heading, null))));
     };
     HeadingCommand.prototype.redo = function (editor, selection) {
-        console.log("REDO");
-        editor.unwrapSelection(selection.selection, "strong,b");
+        if (!selection.context.heading) {
+            console.error("No heading found to redo.");
+            return;
+        }
+        editor.unwrapSelection(selection.selection, selection.context.heading);
     };
     HeadingCommand.prototype.isActive = function (editor, selection) {
-        console.log(selection);
+        return !!selection.context.heading && selection.context.heading.contains(selection.selection.focusNode);
+    };
+    HeadingCommand.prototype.getSectionHeadingRank = function (selection) {
+        var lastH = selection.context.heading;
+        return lastH ? parseInt(lastH.tagName.slice(-1)) : null;
+    };
+    return HeadingCommand;
+}(Command));
+var SimpleTagCommand = (function (_super) {
+    __extends(SimpleTagCommand, _super);
+    function SimpleTagCommand(name, icon, tag, secondaryTag) {
+        if (secondaryTag === void 0) { secondaryTag = null; }
+        var _this = _super.call(this, name, icon) || this;
+        _this.tagName = "";
+        _this.secondaryTagName = null;
+        _this.selector = undefined;
+        _this.tagName = tag;
+        _this.secondaryTagName = secondaryTag;
+        _this.selector = tag + (secondaryTag ? ("," + secondaryTag) : "");
+        return _this;
+    }
+    SimpleTagCommand.prototype.apply = function (editor, selection) {
+        var Tag = this.tagName;
+        editor.wrapSelection(selection.selection, (createElement(Tag, null)));
+    };
+    SimpleTagCommand.prototype.redo = function (editor, selection) {
+        editor.unwrapSelection(selection.selection, this.selector);
+    };
+    SimpleTagCommand.prototype.isActive = function (editor, selection) {
         if (selection.element) {
-            var strong = selection.element.closest("strong,b");
+            var strong = selection.element.closest(this.selector);
             if (strong != null) {
                 return true;
             }
         }
         return false;
     };
-    return HeadingCommand;
+    return SimpleTagCommand;
 }(Command));
 //# sourceMappingURL=seoiwyg.js.map

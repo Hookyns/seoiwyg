@@ -9,30 +9,38 @@ class HeadingCommand extends Command
 
 	apply(editor: SeoIwyg, selection: EditorSelection): void
 	{
-		selection.context.heading.tagName
-		editor.wrapSelection(selection.selection, (<strong></strong>));
+		const Heading = "h" + ((this.getSectionHeadingRank(selection) || 0) + 1).toString();
+		editor.wrapSelection(selection.selection, (<section><Heading></Heading></section>));
 	}
 
 	redo(editor: SeoIwyg, selection: EditorSelection): void
 	{
-		console.log("REDO");
-		editor.unwrapSelection(selection.selection, "strong,b");
+		// const h = this.getSectionHeadingRank(selection);
+
+		// No heading but trying to redo, error
+		if (!selection.context.heading) { // if (!h)
+			console.error("No heading found to redo.");
+			return;
+		}
+
+		// const heading = "h" + h;
+
+		editor.unwrapSelection(selection.selection, selection.context.heading);
 	}
 
 	isActive(editor: SeoIwyg, selection: EditorSelection): boolean
 	{
-		console.log(selection);
+		return !!selection.context.heading && selection.context.heading.contains(selection.selection.focusNode);
+	}
 
-		if (selection.element)
-		{
-			let strong = selection.element.closest("strong,b");
-
-			if (strong != null)
-			{
-				return true;
-			}
-		}
-
-		return false;
+	// noinspection JSMethodCanBeStatic
+	/**
+	 * Return heading rank
+	 * @param {EditorSelection} selection
+	 * @returns {number | number}
+	 */
+	private getSectionHeadingRank(selection: EditorSelection): number | null {
+		let lastH = selection.context.heading;
+		return lastH ? parseInt(lastH.tagName.slice(-1)) : null;
 	}
 }

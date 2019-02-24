@@ -122,7 +122,8 @@ class SeoIwyg
 		const editorSelection = this.getSelection();
 
 		// Interupt if editor not focused
-		if (!editorSelection.selection.focusNode || !this.content.contains(editorSelection.selection.focusNode)) {
+		if (!editorSelection.selection.focusNode || !this.content.contains(editorSelection.selection.focusNode))
+		{
 			return;
 		}
 
@@ -168,7 +169,7 @@ class SeoIwyg
 				mainHeading: null,
 				section: section
 			}, // TODO: Doplnit kontext
-			element: selection.focusNode ? selection.focusNode.parentElement : null,
+			element: focused,
 			node: selection.focusNode
 		};
 	}
@@ -194,20 +195,17 @@ class SeoIwyg
 		range.surroundContents(into);
 
 		let newRange = document.createRange();
-		newRange.selectNode(into);
+		newRange.selectNodeContents(into);
 		selection.removeAllRanges();
 		selection.addRange(newRange);
 
 		if (selectionType === SelectionType.Caret)
 		{
-			// let space = document.createElement("div");
-			// space.innerHTML = "&#8203;";
-			// into.appendChild(space.childNodes[0]);
+			// Insert placeholder; empty nodes are removed from DOM
 			into.appendChild(document.createTextNode(SeoIwyg.PlaceholderChar));
 
-			range.setStart(into, 1);
-			// range.setEnd(into, 1);
-			range.collapse(true);
+			newRange.setStart(into, 1);
+			newRange.collapse(true);
 		}
 	}
 
@@ -240,9 +238,6 @@ class SeoIwyg
 			return;
 		}
 
-		// console.log(selection);
-		// return;
-
 		let range = selection.getRangeAt(0);
 
 		if (selection.type === SelectionType.Caret && range.endContainer.textContent != null && range.endOffset === range.endContainer.textContent.length)
@@ -254,23 +249,16 @@ class SeoIwyg
 			{
 				(range.endContainer.parentElement as Element).insertAdjacentText("afterend", SeoIwyg.PlaceholderChar);
 				sib = (range.endContainer.parentElement as Element).nextSibling as Node;
-				// let newSib = sib = document.createTextNode(" ");
-				//
-				// if (!sib)
-				// {
-				// 	(range.endContainer.parentNode as Node).appendChild(sib);
-				// }
 
 				newRange.setStart(sib, 1);
-				newRange.setEnd(sib, 1);
+				// newRange.setEnd(sib, 1);
 			}
-			else {
+			else
+			{
 				newRange.setStart(sib, 0);
 			}
 
 			newRange.collapse(true);
-			// newRange.setStart(sib, 0);
-			// newRange.setEnd(sib, 1);
 
 			selection.removeAllRanges();
 			selection.addRange(newRange);
@@ -300,6 +288,11 @@ class SeoIwyg
 	 */
 	public getFocusedElement(selection: Selection): Element | null
 	{
+		if (!selection.focusNode)
+		{
+			return null;
+		}
+
 		return selection.focusNode.nodeType === Node.TEXT_NODE ? selection.focusNode.parentElement : selection.focusNode as Element;
 	}
 
@@ -311,11 +304,13 @@ class SeoIwyg
 	 */
 	public getFocusedTextNode(selection: Selection, __node: Node | undefined | null = undefined): Node | null
 	{
-		if (__node === null) {
+		if (__node === null)
+		{
 			return null;
 		}
 
-		if (__node == undefined) {
+		if (__node == undefined)
+		{
 			__node = selection.focusNode;
 		}
 
@@ -332,7 +327,12 @@ class SeoIwyg
 	 */
 	private init(selector: string)
 	{
-		this.addCommand(new BoldCommand());
+		this.addCommand(new SimpleTagCommand("Bold", "", "strong", "b"));
+		this.addCommand(new SimpleTagCommand("Italic", "", "em", "i"));
+		this.addCommand(new SimpleTagCommand("Strike", "", "strike"));
+		this.addCommand(new SimpleTagCommand("Sub", "", "sub"));
+		this.addCommand(new SimpleTagCommand("Sup", "", "sup"));
+		this.addCommand(new HeadingCommand());
 		this.addCommand(new OutlineCommand());
 
 		document.addEventListener("DOMContentLoaded", () => {

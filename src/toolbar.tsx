@@ -15,6 +15,12 @@ class Toolbar
 	private commands: Array<Command> = [];
 
 	/**
+	 * Last rendered node
+	 * @type {null}
+	 */
+	private entity: Node | null = null;
+
+	/**
 	 * Get registered commands list
 	 * @returns {Command[]}
 	 */
@@ -51,14 +57,25 @@ class Toolbar
 	public render(): Element
 	{
 		const toolButtons = this.commands.map(cmd => {
-			let el = cmd.render();
-			el.addEventListener("click", () => {
+			cmd.onClick.add((e) => {
+				let orig = cmd.entity;
 				this.seoIwyg.invokeCommand(cmd);
+
+				if (orig)
+				{
+					this.reRenderCommand(cmd, orig);
+				}
 			});
-			return el;
+
+			return cmd.render();
+			// let el = cmd.render();
+			// el.on("click", () => {
+			// 	this.seoIwyg.invokeCommand(cmd);
+			// });
+			// return el;
 		});
 
-		return (<div class="seoiwyg-tools">
+		return this.entity = (<div class="seoiwyg-tools">
 			{toolButtons}
 		</div>);
 	}
@@ -85,9 +102,25 @@ class Toolbar
 	private onEditorSelection(editor: SeoIwyg, selection: EditorSelection)
 	{
 		for (let cmd of this.commands) {
-			if (cmd.constructor.prototype.hasOwnProperty("onSelection")) {
-				cmd.onSelection(editor, selection);
+			let orig = cmd.entity;
+
+			// if (cmd.constructor.prototype.hasOwnProperty("onSelection")) {
+			cmd.onSelection(editor, selection);
+			// }
+
+			if (orig)
+			{
+				this.reRenderCommand(cmd, orig);
 			}
 		}
+	}
+
+	/**
+	 * Re-reder command
+	 * @param {Command} cmd
+	 * @param {Node} orig
+	 */
+	private reRenderCommand(cmd: Command, orig: Node) {
+		(this.entity as Node).replaceChild(cmd.render(), orig);
 	}
 }

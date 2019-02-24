@@ -1,3 +1,6 @@
+/**
+ * Command component class
+ */
 abstract class Command
 {
 	//region Fields
@@ -12,9 +15,35 @@ abstract class Command
 	 */
 	private _icon: string;
 
+	/**
+	 * Rendered entity
+	 */
+	public entity: Node | null = null;
+
+	/**
+	 * Last result f isActive called from SoIwyg class
+	 * @type {boolean}
+	 */
+	public active: boolean = false;
+
+	/**
+	 * On click event
+	 * @type {EditorEvent}
+	 * @private
+	 */
+	private _onClick: EditorEvent<(event: Event) => void> = new EditorEvent<(event: Event) => void>();
+
 	//endregion
 
 	//region Properties
+
+	/**
+	 * Get onClick event
+	 * @returns {EditorEvent<(event: Event) => void>}
+	 */
+	public get onClick() {
+		return this._onClick;
+	}
 
 	public get name(): string
 	{
@@ -41,9 +70,13 @@ abstract class Command
 
 	//region Methods
 
+	/**
+	 * Render command button
+	 */
 	public render(): Node
 	{
-		return (<span class="seoiwyg-command-button">
+		return this.entity = (<span class={"seoiwyg-command-button" + (this.active ? " active" : "")}
+									onClick={(...args) => this._onClick.invoke(...args)}>
 				{/*<img src={tool.icon} alt={tool.name} title={tool.name}/>*/}
 				{this.name}
 			</span>);
@@ -65,7 +98,8 @@ abstract class Command
 	 * @param {Selection} selection
 	 */
 	public onSelection(editor: SeoIwyg, selection: EditorSelection) {
-		throw new Error("Not implemented. Do not call super.onSelection();");
+		this.active = this.isActive(editor, selection);
+		// throw new Error("Not implemented. Do not call super.onSelection();");
 	}
 
 	/**

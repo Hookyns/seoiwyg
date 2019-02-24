@@ -38,6 +38,10 @@ declare class SeoIwyg {
 declare abstract class Command {
     private _name;
     private _icon;
+    entity: Node | null;
+    active: boolean;
+    private _onClick;
+    readonly onClick: EditorEvent<(event: Event) => void>;
     readonly name: string;
     readonly icon: string;
     constructor(name: string, icon: string);
@@ -77,15 +81,27 @@ declare class EditorEvent<THandler extends Function> {
 declare class Toolbar {
     private seoIwyg;
     private commands;
+    private entity;
     readonly registeredCommands: Command[];
     constructor(seoiwyg: SeoIwyg);
     addCommand(command: Command): void;
     render(): Element;
     private onEditorChange;
     private onEditorSelection;
+    private reRenderCommand;
 }
 declare class HeadingCommand extends Command {
     constructor();
+    apply(editor: SeoIwyg, selection: EditorSelection): void;
+    redo(editor: SeoIwyg, selection: EditorSelection): void;
+    isActive(editor: SeoIwyg, selection: EditorSelection): boolean;
+    private getSectionHeadingRank;
+}
+declare class SimpleTagCommand extends Command {
+    private tagName;
+    private secondaryTagName;
+    private selector;
+    constructor(name: string, icon: string, tag: string, secondaryTag?: string | null);
     apply(editor: SeoIwyg, selection: EditorSelection): void;
     redo(editor: SeoIwyg, selection: EditorSelection): void;
     isActive(editor: SeoIwyg, selection: EditorSelection): boolean;
